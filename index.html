@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIL Classification Tool - CEWIL Canada</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B4298;
+            --primary-light: #2557b8;
+            --accent: #d4af37;
+            --accent-soft: #f5e6c8;
+            --neutral-50: #fafaf9;
+            --neutral-100: #f5f5f4;
+            --neutral-200: #e7e5e4;
+            --neutral-300: #d6d3d1;
+            --neutral-400: #a8a29e;
+            --neutral-600: #57534e;
+            --neutral-800: #292524;
+            --neutral-900: #1c1917;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+            min-height: 100vh;
+            color: var(--neutral-800);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Decorative background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 300px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            clip-path: polygon(0 0, 100% 0, 100% 60%, 0 100%);
+            z-index: -1;
+            opacity: 0.95;
+        }
+
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .header-subtitle {
+            font-size: 1.125rem;
+            color: var(--accent-soft);
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        /* Card container */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out 0.2s backwards;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            background: var(--neutral-100);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .progress-bar-bg {
+            background: var(--neutral-200);
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Content area */
+        .content {
+            padding: 3rem 2.5rem;
+        }
+
+        .question-number {
+            font-size: 0.875rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .question-text {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            color: var(--neutral-900);
+            margin-bottom: 2.5rem;
+            line-height: 1.3;
+            font-weight: 300;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 1.25rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-light);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--neutral-800);
+            border-color: var(--neutral-300);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: var(--neutral-50);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* Navigation buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--neutral-200);
+        }
+
+        .btn-back {
+            padding: 0.875rem 1.5rem;
+            background: transparent;
+            color: var(--neutral-600);
+            border: 1px solid var(--neutral-300);
+            font-size: 1rem;
+        }
+
+        .btn-back:hover:not(:disabled) {
+            background: var(--neutral-100);
+            color: var(--neutral-900);
+        }
+
+        /* Result screen */
+        .result-container {
+            text-align: center;
+        }
+
+        .result-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .result-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: var(--neutral-900);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .result-description {
+            font-size: 1.125rem;
+            color: var(--neutral-600);
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .disclaimer {
+            background: var(--accent-soft);
+            border-left: 4px solid var(--accent);
+            padding: 1.25rem 1.5rem;
+            margin-top: 2.5rem;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            color: var(--neutral-700);
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content {
+                padding: 2rem 1.5rem;
+            }
+
+            .nav-buttons {
+                flex-direction: column-reverse;
+            }
+
+            .btn-back {
+                width: 100%;
+            }
+        }
+
+        /* Utility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // =================================================================
+        // CONTENT CONFIGURATION
+        // Non-technical staff can edit the questions and outcomes below
+        // =================================================================
+
+        const QUESTIONS = {
+            // Top-level WIL check
+            q1: {
+                id: 'q1',
+                text: 'Does the activity place students in a workplace or practice setting beyond regular classroom or campus-only labs (e.g., employer, community organization, clinic, field site)?',
+                type: 'yesno',
+                next: {
+                    yes: 'q2',
+                    no: 'outcome_non_wil_course'
+                }
+            },
+            q2: {
+                id: 'q2',
+                text: 'Is there an engaged partnership involving at least the academic institution, a host organization or community partner, and the student, with shared expectations about learning?',
+                type: 'yesno',
+                next: {
+                    yes: 'q3',
+                    no: 'outcome_not_wil_work'
+                }
+            },
+            q3: {
+                id: 'q3',
+                text: 'Is the experience curricular (for credit or program-required) with intentional learning outcomes, assessment, and structured reflection?',
+                type: 'yesno',
+                next: {
+                    yes: 'q4',
+                    no: 'outcome_cocurricular'
+                }
+            },
+
+            // Branch A - Job-role placements
+            q4: {
+                id: 'q4',
+                text: 'Is the student primarily working in a job role in a workplace, rather than mainly completing a time-bound project for a client?',
+                type: 'yesno',
+                next: {
+                    yes: 'q6',
+                    no: 'q12' // Skip to Branch C
+                }
+            },
+            q6: {
+                id: 'q6',
+                text: 'Is the experience designed as part of a co-operative education program, where work terms are typically paid, alternate or integrate with academic terms, and are formally tracked as "co-op" on the student record?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_coop',
+                    no: 'q7'
+                }
+            },
+            q7: {
+                id: 'q7',
+                text: 'Is this a single or limited number of work terms, typically full-time and related to the student\'s field of study, but not under a formal co-op program structure?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_work_experience',
+                    no: 'q8'
+                }
+            },
+            q8: {
+                id: 'q8',
+                text: 'Is this an intensive, supervised placement in a discipline-specific role (e.g., HR intern, design intern), which may be paid or unpaid and can occur at different times in the program (often called "internship")?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_internship',
+                    no: 'q9' // Route to Branch B
+                }
+            },
+
+            // Branch B - Professional practice / clinical vs Field Placement
+            q9: {
+                id: 'q9',
+                text: 'Is this placement required for professional licensure or certification (e.g., nursing, teaching, social work, certain health disciplines)?',
+                type: 'yesno',
+                next: {
+                    yes: 'q10',
+                    no: 'q11'
+                }
+            },
+            q10: {
+                id: 'q10',
+                text: 'Does the student work under the supervision of a registered/licensed professional, usually unpaid, in a practice setting where hours and performance are tied to meeting professional standards?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_practicum',
+                    no: 'q11'
+                }
+            },
+            q11: {
+                id: 'q11',
+                text: 'Is the experience an intensive, part-time or short-term hands-on placement in a relevant setting, where supervision does not require a licensed professional and hours are not required for licensure?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_field_placement',
+                    no: 'q12' // Route to Branch C
+                }
+            },
+
+            // Branch C - Applied Research Project, Service Learning, Entrepreneurship
+            q12: {
+                id: 'q12',
+                text: 'Is the central activity an applied research or consulting-style project for an external organization, where students act as researchers about work (e.g., consulting, community-based research, design projects)?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_applied_research',
+                    no: 'q13'
+                }
+            },
+            q13: {
+                id: 'q13',
+                text: 'Is the primary aim to address a community-identified need, with students working in partnership with a community-based organization, integrating meaningful service with coursework and critical reflection?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_service_learning',
+                    no: 'q14'
+                }
+            },
+            q14: {
+                id: 'q14',
+                text: 'Is the focus on students starting or advancing a business or social venture, leveraging institutional resources (incubator, accelerator, mentorship, funding), with the venture work itself as the core of the learning activity?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_entrepreneurship',
+                    no: 'outcome_non_wil_course'
+                }
+            }
+        };
+
+        const OUTCOMES = {
+            // WIL Types
+            outcome_apprenticeship: {
+                id: 'outcome_apprenticeship',
+                label: 'WIL Type Identified',
+                title: 'Apprenticeship (WIL)',
+                description: 'This experience involves a formal apprenticeship agreement with a certified journeyperson, where the student is paid and accumulating hours toward trade or occupation certification. This is a recognized form of Work-Integrated Learning under CEWIL Canada standards.',
+                isWIL: true
+            },
+            outcome_coop: {
+                id: 'outcome_coop',
+                label: 'WIL Type Identified',
+                title: 'Co-operative Education (Co-op, WIL)',
+                description: 'This experience is part of a formal co-operative education program where work terms typically alternate or integrate with academic terms, are paid, and are tracked as "co-op" on the student record. This is a core form of Work-Integrated Learning.',
+                isWIL: true
+            },
+            outcome_work_experience: {
+                id: 'outcome_work_experience',
+                label: 'WIL Type Identified',
+                title: 'Work Experience (WIL)',
+                description: 'This involves a single or limited number of work terms that are typically full-time and related to the student\'s field of study, but not structured as a formal co-op program. This qualifies as Work-Integrated Learning.',
+                isWIL: true
+            },
+            outcome_internship: {
+                id: 'outcome_internship',
+                label: 'WIL Type Identified',
+                title: 'Internship (WIL)',
+                description: 'This is an intensive, supervised placement in a discipline-specific role (such as HR intern or design intern), which may be paid or unpaid and can occur at various points in the program. This is a recognized form of Work-Integrated Learning.',
+                isWIL: true
+            },
+            outcome_practicum: {
+                id: 'outcome_practicum',
+                label: 'WIL Type Identified',
+                title: 'Mandatory Professional Practicum / Clinical Placement (WIL)',
+                description: 'This placement is required for professional licensure or certification, with students working under the supervision of a registered/licensed professional in a practice setting where hours and performance are tied to professional standards.',
+                isWIL: true
+            },
+            outcome_field_placement: {
+                id: 'outcome_field_placement',
+                label: 'WIL Type Identified',
+                title: 'Field Placement (WIL)',
+                description: 'This is an intensive, part-time or short-term hands-on placement in a relevant setting where supervision does not require a licensed professional and hours are not required for licensure. This qualifies as Work-Integrated Learning.',
+                isWIL: true
+            },
+            outcome_applied_research: {
+                id: 'outcome_applied_research',
+                label: 'WIL Type Identified',
+                title: 'Applied Research Project (WIL)',
+                description: 'The central activity is an applied research or consulting-style project for an external organization, where students act as researchers about work through consulting, community-based research, or design projects. This is a recognized form of Work-Integrated Learning.',
+                isWIL: true
+            },
+            outcome_service_learning: {
+                id: 'outcome_service_learning',
+                label: 'WIL Type Identified',
+                title: 'Service Learning / Community Service Learning (WIL)',
+                description: 'This experience addresses a community-identified need, with students working in partnership with a community-based organization, integrating meaningful service with coursework and critical reflection. This is a form of Work-Integrated Learning.',
+                isWIL: true
+            },
+            outcome_entrepreneurship: {
+                id: 'outcome_entrepreneurship',
+                label: 'WIL Type Identified',
+                title: 'Entrepreneurship (WIL)',
+                description: 'The focus is on students starting or advancing a business or social venture, leveraging institutional resources (incubator, accelerator, mentorship, funding), with the venture work itself as the core learning activity for academic credit.',
+                isWIL: true
+            },
+
+            // Non-WIL Outcomes
+            outcome_non_wil_course: {
+                id: 'outcome_non_wil_course',
+                label: 'Classification Result',
+                title: 'Course-Based Experiential Learning (Non-WIL)',
+                description: 'This experience does not meet CEWIL Canada\'s criteria for Work-Integrated Learning. It may be valuable experiential learning (such as simulations, campus labs, or classroom-based projects), but lacks the external workplace partnership component required for WIL classification.',
+                isWIL: false,
+                learnMoreLink: 'https://uleth.sharepoint.com/sites/career-bridge/SitePages/Curricular-Work-Integrated---Experiential-Learning-Reporting-Initiative.aspx?csf=1&web=1&share=EZuyYFrv_URGlsTESaJWEr8B4NQmAlx3xyr4OJFfuVxWhQ&e=GovI5K'
+            },
+            outcome_not_wil_work: {
+                id: 'outcome_not_wil_work',
+                label: 'Classification Result',
+                title: 'Not WIL (Work/Volunteering)',
+                description: 'While this involves work or volunteering in a workplace, it does not qualify as CEWIL WIL because it lacks an engaged partnership with shared expectations about learning between the institution, host organization, and student.',
+                isWIL: false
+            },
+            outcome_cocurricular: {
+                id: 'outcome_cocurricular',
+                label: 'Classification Result',
+                title: 'Co-curricular Work Experience (Non-WIL)',
+                description: 'This experience involves workplace engagement but is not curricular (not for credit or program-required) and lacks intentional learning outcomes, assessment, and structured reflection required for WIL classification.',
+                isWIL: false
+            }
+        };
+
+        // =================================================================
+        // APP COMPONENTS
+        // =================================================================
+
+        function App() {
+            const [currentNode, setCurrentNode] = useState('q1');
+            const [history, setHistory] = useState([]);
+            const [isComplete, setIsComplete] = useState(false);
+
+            const currentQuestion = QUESTIONS[currentNode];
+            const currentOutcome = OUTCOMES[currentNode];
+
+            // Calculate progress
+            const totalQuestions = Object.keys(QUESTIONS).length;
+            const currentQuestionIndex = history.length + 1;
+            const progressPercent = (currentQuestionIndex / totalQuestions) * 100;
+
+            const handleAnswer = (answer) => {
+                const nextNode = currentQuestion.next[answer];
+                
+                // Add current node to history
+                setHistory([...history, { node: currentNode, answer }]);
+
+                // Check if next node is an outcome
+                if (OUTCOMES[nextNode]) {
+                    setCurrentNode(nextNode);
+                    setIsComplete(true);
+                } else {
+                    setCurrentNode(nextNode);
+                }
+            };
+
+            const handleBack = () => {
+                if (history.length > 0) {
+                    const newHistory = [...history];
+                    const previous = newHistory.pop();
+                    setHistory(newHistory);
+                    setCurrentNode(previous.node);
+                    setIsComplete(false);
+                }
+            };
+
+            const handleRestart = () => {
+                setCurrentNode('q1');
+                setHistory([]);
+                setIsComplete(false);
+            };
+
+            return (
+                <div className="app-container">
+                    <header className="header">
+                        <h1 className="header-title">WIL Classification Tool</h1>
+                        <p className="header-subtitle">University of Lethbridge Work-Integrated Learning Framework</p>
+                    </header>
+
+                    <main className="card">
+                        {!isComplete && currentQuestion && (
+                            <>
+                                <div className="progress-container">
+                                    <div className="progress-text">
+                                        Question {currentQuestionIndex} of {totalQuestions}
+                                    </div>
+                                    <div className="progress-bar-bg">
+                                        <div 
+                                            className="progress-bar-fill" 
+                                            style={{ width: `${progressPercent}%` }}
+                                            role="progressbar"
+                                            aria-valuenow={progressPercent}
+                                            aria-valuemin="0"
+                                            aria-valuemax="100"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="content">
+                                    <div className="question-number">Question {currentQuestionIndex}</div>
+                                    <h2 className="question-text">{currentQuestion.text}</h2>
+
+                                    <div className="button-group" role="group" aria-label="Answer options">
+                                        <button 
+                                            className="btn btn-primary"
+                                            onClick={() => handleAnswer('yes')}
+                                        >
+                                            Yes
+                                        </button>
+                                        <button 
+                                            className="btn btn-secondary"
+                                            onClick={() => handleAnswer('no')}
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+
+                                    {history.length > 0 && (
+                                        <div className="nav-buttons">
+                                            <button 
+                                                className="btn btn-back"
+                                                onClick={handleBack}
+                                                aria-label="Go back to previous question"
+                                            >
+                                                ← Back
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {isComplete && currentOutcome && (
+                            <div className="content">
+                                <div className="result-container">
+                                    <div className="result-icon">
+                                        {currentOutcome.isWIL ? (
+                                            <svg viewBox="0 0 24 24">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                        ) : (
+                                            <svg viewBox="0 0 24 24">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                            </svg>
+                                        )}
+                                    </div>
+
+                                    <div className="result-label">{currentOutcome.label}</div>
+                                    <h2 className="result-title">{currentOutcome.title}</h2>
+                                    <p className="result-description">
+                                        {currentOutcome.description}
+                                        {currentOutcome.learnMoreLink && (
+                                            <>
+                                                {' '}
+                                                <a 
+                                                    href={currentOutcome.learnMoreLink} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        color: 'var(--primary)',
+                                                        textDecoration: 'underline',
+                                                        fontWeight: '500'
+                                                    }}
+                                                >
+                                                    Learn more
+                                                </a>
+                                            </>
+                                        )}
+                                    </p>
+
+                                    <button 
+                                        className="btn btn-primary"
+                                        onClick={handleRestart}
+                                    >
+                                        Start New Classification
+                                    </button>
+
+                                    <div className="disclaimer">
+                                        <strong>Note:</strong> This tool is a decision aid aligned with CEWIL's WIL forms and local adaptations. Final classification decisions should be confirmed by the University of Lethbridge's WIL governance or quality assurance processes.
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
