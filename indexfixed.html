@@ -1,0 +1,2322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIL &amp; CBEL Classification Tool - CEWIL Canada</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B4298;
+            --primary-light: #2557b8;
+            --accent: #d4af37;
+            --accent-soft: #f5e6c8;
+            --neutral-50: #fafaf9;
+            --neutral-100: #f5f5f4;
+            --neutral-200: #e7e5e4;
+            --neutral-300: #d6d3d1;
+            --neutral-400: #a8a29e;
+            --neutral-600: #57534e;
+            --neutral-800: #292524;
+            --neutral-900: #1c1917;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            min-height: 100vh;
+            color: var(--neutral-800);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 6rem;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .header-subtitle {
+            font-size: 1.125rem;
+            color: var(--accent-soft);
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        /* Card container */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out 0.2s backwards;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            background: var(--neutral-100);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .progress-bar-bg {
+            background: var(--neutral-200);
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Content area */
+        .content {
+            padding: 3rem 2.5rem;
+        }
+
+        .question-number {
+            font-size: 0.875rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .question-text {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            color: var(--neutral-900);
+            margin-bottom: 2.5rem;
+            line-height: 1.3;
+            font-weight: 300;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 1.25rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-light);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--neutral-800);
+            border-color: var(--neutral-300);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: var(--neutral-50);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* Centred, auto-width button variant (used outside button-group) */
+        .btn-inline {
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Navigation buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--neutral-200);
+        }
+
+        .btn-back {
+            padding: 0.875rem 1.5rem;
+            background: transparent;
+            color: var(--neutral-600);
+            border: 1px solid var(--neutral-300);
+            font-size: 1rem;
+        }
+
+        .btn-back:hover:not(:disabled) {
+            background: var(--neutral-100);
+            color: var(--neutral-900);
+        }
+
+        /* Welcome screen */
+        .welcome-container {
+            text-align: center;
+        }
+
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .welcome-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .welcome-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: var(--neutral-900);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .welcome-description {
+            font-size: 1.125rem;
+            color: var(--neutral-600);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            max-width: 640px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .welcome-categories {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            max-width: 640px;
+            margin: 0 auto 2.5rem;
+            text-align: left;
+        }
+
+        .welcome-category-card {
+            background: var(--neutral-50);
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .welcome-category-card h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.125rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .welcome-category-card p {
+            font-size: 0.9375rem;
+            color: var(--neutral-600);
+        }
+
+        /* Result screen */
+        .result-container {
+            text-align: center;
+        }
+
+        .result-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .result-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-code {
+            font-size: 0.8125rem;
+            color: var(--neutral-400);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: var(--neutral-900);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .result-description {
+            font-size: 1.125rem;
+            color: var(--neutral-600);
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .disclaimer {
+            background: var(--accent-soft);
+            border-left: 4px solid var(--accent);
+            padding: 1.25rem 1.5rem;
+            margin-top: 2.5rem;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            color: var(--neutral-700);
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        /* Title input (result screen + summary) */
+        .title-input-group {
+            max-width: 480px;
+            margin: 0 auto 2rem;
+            text-align: left;
+        }
+
+        .title-input-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--neutral-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .title-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-family: 'IBM Plex Sans', sans-serif;
+            border: 2px solid var(--neutral-300);
+            border-radius: 10px;
+            transition: border-color 0.2s ease;
+        }
+
+        .title-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .title-hint {
+            font-size: 0.8125rem;
+            color: var(--neutral-400);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* Result screen action row */
+        .result-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-actions .btn {
+            flex: 0 1 auto;
+            min-width: 200px;
+        }
+
+        /* "Ready to submit" CTA */
+        .btn-ready-submit {
+            background: var(--accent);
+            color: var(--neutral-900);
+            border: 2px solid var(--accent);
+        }
+
+        .btn-ready-submit:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        /* Summary view */
+        /* Horizontal white bar separating the page title from the content card */
+        .summary-divider {
+            height: 4px;
+            background: white;
+            border-radius: 999px;
+            box-shadow: var(--shadow-md);
+            margin: 0 0 2rem;
+            opacity: 0.9;
+        }
+
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+            color: var(--neutral-900);
+            font-weight: 600;
+        }
+
+        .summary-subtitle {
+            font-size: 0.9375rem;
+            color: var(--neutral-600);
+            margin-top: 0.25rem;
+        }
+
+        .summary-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--neutral-600);
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 8px;
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .btn-text:hover {
+            text-decoration: underline;
+        }
+
+        /* Classification cards (results overview) */
+        .classification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .classification-card {
+            background: var(--neutral-50);
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .classification-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
+        }
+
+        .classification-card.selected {
+            border-color: var(--primary);
+            background: #f0f4ff;
+        }
+
+        .classification-card.no-title {
+            opacity: 0.9;
+        }
+
+        .card-checkbox-wrap {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.875rem;
+        }
+
+        .card-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        .classification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .classification-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .classification-title-row {
+            margin-bottom: 0.75rem;
+        }
+
+        .classification-title-input {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--neutral-900);
+            border: 1.5px solid transparent;
+            border-radius: 6px;
+            padding: 0.4rem 0.6rem;
+            background: transparent;
+            width: 100%;
+            transition: all 0.18s ease;
+            outline: none;
+        }
+
+        .classification-title-input::placeholder {
+            color: var(--neutral-400);
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .classification-title-input:hover {
+            border-color: var(--neutral-300);
+            background: white;
+        }
+
+        .classification-title-input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(27, 66, 152, 0.08);
+        }
+
+        .outcome-code {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.625rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            font-family: 'IBM Plex Sans', monospace;
+        }
+
+        .outcome-code.category-cbel {
+            background: var(--neutral-600);
+        }
+
+        .outcome-code.category-none {
+            background: var(--neutral-400);
+        }
+
+        .classification-outcome {
+            font-family: 'Fraunces', serif;
+            font-size: 1.1875rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin: 0.5rem 0 0.25rem;
+        }
+
+        .classification-type {
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+            font-weight: 500;
+        }
+
+        .classification-timestamp {
+            font-size: 0.75rem;
+            color: var(--neutral-400);
+            margin-top: 0.5rem;
+        }
+
+        .classification-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        /* Clickable answer chips that expand to show the question text */
+        .answers-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .answer-chip {
+            background: white;
+            border: 1px solid var(--neutral-300);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            color: var(--neutral-700);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .answer-chip:hover {
+            border-color: var(--primary);
+            background: var(--neutral-50);
+        }
+
+        .answer-chip.expanded {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .answer-value {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .answer-detail {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.75rem;
+            flex-basis: 100%;
+            width: 100%;
+            animation: slideDown 0.2s ease;
+        }
+
+        .answer-detail-question {
+            font-size: 0.9rem;
+            color: var(--neutral-700);
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Export bar */
+        .export-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1.25rem 0;
+            border-top: 1px solid var(--neutral-200);
+            margin-bottom: 1.5rem;
+        }
+
+        .export-bar-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .select-all-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9375rem;
+            color: var(--neutral-700);
+            cursor: pointer;
+        }
+
+        .select-all-label input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .summary-footer-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .summary-footer-actions .btn {
+            flex: 0 1 auto;
+            min-width: 220px;
+            text-align: center;
+        }
+
+        /* Floating "View Summary" button */
+        .floating-summary-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 999px;
+            padding: 0.9rem 1.5rem;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            font-family: 'IBM Plex Sans', sans-serif;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 50;
+            transition: all 0.2s ease;
+        }
+
+        .floating-summary-btn:hover {
+            background: var(--neutral-50);
+            transform: translateY(-2px);
+        }
+
+        .floating-summary-btn:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .floating-summary-badge {
+            background: var(--accent);
+            color: var(--neutral-900);
+            border-radius: 999px;
+            min-width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            padding: 0 0.4rem;
+        }
+
+        /* Submission modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(28, 25, 23, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 100;
+            animation: fadeInOverlay 0.2s ease-out;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-header {
+            padding: 2rem 2.5rem 1rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .modal-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-subtitle {
+            font-size: 0.9375rem;
+            color: var(--neutral-600);
+        }
+
+        .modal-body {
+            padding: 1.5rem 2.5rem;
+        }
+
+        .modal-field {
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--neutral-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-field input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-family: 'IBM Plex Sans', sans-serif;
+            border: 2px solid var(--neutral-300);
+            border-radius: 10px;
+            transition: border-color 0.2s ease;
+        }
+
+        .modal-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-field input.field-error {
+            border-color: #dc2626;
+        }
+
+        .field-error-text {
+            font-size: 0.8125rem;
+            color: #dc2626;
+            margin-top: 0.375rem;
+        }
+
+        .modal-section-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--neutral-800);
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-checkbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.625rem;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            font-size: 0.9375rem;
+        }
+
+        .modal-checkbox-item.disabled {
+            opacity: 0.55;
+        }
+
+        .modal-checkbox-item input {
+            margin-top: 0.2rem;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .modal-checkbox-item input:disabled {
+            cursor: not-allowed;
+        }
+
+        .modal-checkbox-item-note {
+            font-size: 0.8125rem;
+            color: var(--neutral-400);
+            font-style: italic;
+            margin-top: 0.2rem;
+        }
+
+        .modal-duplicate-warning {
+            background: #fffbeb;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: var(--neutral-800);
+            margin-bottom: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .modal-duplicate-warning ul {
+            margin: 0.5rem 0 0.5rem 1.25rem;
+        }
+
+        .modal-footer {
+            padding: 1.25rem 2.5rem 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .modal-footer .btn {
+            flex: 0 1 auto;
+            text-align: center;
+        }
+
+        .modal-success {
+            text-align: center;
+            padding: 1rem 0 2rem;
+        }
+
+        .modal-success-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-success-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .modal-success-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-success-text {
+            font-size: 0.9375rem;
+            color: var(--neutral-600);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .modal-error-banner {
+            background: #fef2f2;
+            border: 1px solid #dc2626;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #991b1b;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content {
+                padding: 2rem 1.5rem;
+            }
+
+            .nav-buttons {
+                flex-direction: column-reverse;
+            }
+
+            .btn-back {
+                width: 100%;
+            }
+
+            .welcome-categories {
+                grid-template-columns: 1fr;
+            }
+
+            .result-actions .btn,
+            .summary-footer-actions .btn {
+                min-width: 0;
+                width: 100%;
+            }
+
+            .summary-header {
+                flex-direction: column;
+            }
+
+            .export-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+
+            .modal-footer {
+                flex-direction: column-reverse;
+            }
+
+            .floating-summary-btn {
+                right: 1rem;
+                bottom: 1rem;
+            }
+        }
+
+        /* Utility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Skip link — visible only on keyboard focus */
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 1rem;
+            z-index: 9999;
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0 0 8px 8px;
+            font-weight: 600;
+            font-family: 'IBM Plex Sans', sans-serif;
+            text-decoration: none;
+            transition: top 0.15s ease;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Hidden Netlify Forms registration form -->
+    <form name="wil-cbel-submission" netlify data-netlify-honeypot="bot-field" hidden>
+        <input type="text" name="bot-field" />
+        <input type="text" name="submitter-name" />
+        <input type="text" name="faculty" />
+        <input type="text" name="department" />
+        <input type="text" name="submission-date" />
+        <input type="text" name="total_classifications" />
+        <textarea name="classifications"></textarea>
+    </form>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // =================================================================
+        // CONTENT CONFIGURATION
+        // Non-technical staff can edit the questions and outcomes below.
+        // Do not change node IDs, `next` routing keys, or the OUTCOMES
+        // object as part of a text-only edit -- see project handoff docs.
+        // =================================================================
+
+        const QUESTIONS = {
+            q1: {
+                id: 'q1',
+                text: 'Do students in this course or activity complete a required learning activity with an external workplace, organization, or community partner?',
+                type: 'yesno',
+                next: {
+                    yes: 'wil_q2',
+                    no: 'cbel_q2'
+                }
+            },
+
+            // WIL Branch - Branch A: Co-op, Work Experience, Internship
+            wil_q2: {
+                id: 'wil_q2',
+                text: 'Is this experience for academic credit or a program requirement, with clear learning outcomes, assessment, and reflection?',
+                type: 'yesno',
+                next: {
+                    yes: 'wil_q3',
+                    no: 'cbel_q2'
+                }
+            },
+            wil_q3: {
+                id: 'wil_q3',
+                text: "Is the student filling an ongoing role within the organization — performing work as part of the organization's regular operations — rather than producing a specific, defined deliverable or output?",
+                type: 'yesno',
+                next: {
+                    yes: 'wil_q4',
+                    no: 'wil_q7'
+                }
+            },
+            wil_q4: {
+                id: 'wil_q4',
+                text: 'Is this placement part of a formal program structure where students complete approved work terms that are recorded on their academic record as designated work terms, are full-time in nature and are paid positions?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_coop',
+                    no: 'wil_q5'
+                }
+            },
+            wil_q5: {
+                id: 'wil_q5',
+                text: 'Is this a short or limited number of work terms, typically full time, usually in an entry-level role, and not part of a formal program of approved work terms?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_work_experience',
+                    no: 'wil_q6'
+                }
+            },
+            wil_q6: {
+                id: 'wil_q6',
+                text: 'Is the experience an intensive, closely supervised placement in a discipline-specific role, which may be paid or unpaid and can occur at different times in the program?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_internship',
+                    no: 'wil_q7'
+                }
+            },
+
+            // WIL Branch - Branch B: Practicum / Clinical vs. Field Placement
+            wil_q7: {
+                id: 'wil_q7',
+                text: 'Is this placement required for students to qualify for professional certification or licensing (for example, nursing, teaching, or social work)?',
+                type: 'yesno',
+                next: {
+                    yes: 'wil_q8',
+                    no: 'wil_q9'
+                }
+            },
+            wil_q8: {
+                id: 'wil_q8',
+                text: 'Do students work under the supervision of a licensed or registered professional, with required hours and performance tied to professional standards?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_practicum',
+                    no: 'wil_q9'
+                }
+            },
+            wil_q9: {
+                id: 'wil_q9',
+                text: "Is this intensive hands-on placement related to the student's field of study and is short-term or part-time and not required for professional licensing?",
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_field_placement',
+                    no: 'wil_q10'
+                }
+            },
+
+            // WIL Branch - Branch C: Applied Research, Service Learning, Entrepreneurship
+            wil_q10: {
+                id: 'wil_q10',
+                text: 'Is the main activity a research, design, or consulting-style project for an external organization or community partner?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_applied_research',
+                    no: 'wil_q11'
+                }
+            },
+            wil_q11: {
+                id: 'wil_q11',
+                text: 'Is the main goal to address a community-identified need, with service activities connected to course learning and reflection?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_service_learning',
+                    no: 'wil_q12'
+                }
+            },
+            wil_q12: {
+                id: 'wil_q12',
+                text: 'Are students earning credit by starting or developing their own business or social venture using institutional support?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_entrepreneurship',
+                    no: 'cbel_q2'
+                }
+            },
+
+            // CBEL Branch
+            cbel_q2: {
+                id: 'cbel_q2',
+                text: 'Does this course include structured, hands-on or applied learning activities as a required part of the course (for example: labs, simulations, performances, design projects, or applied assignments)?',
+                type: 'yesno',
+                next: {
+                    yes: 'cbel_q3',
+                    no: 'outcome_not_experiential'
+                }
+            },
+            cbel_q3: {
+                id: 'cbel_q3',
+                text: 'Do students take on roles in a simulated or case-based scenario to solve a problem or reach a goal?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_interactive_simulation',
+                    no: 'cbel_q4'
+                }
+            },
+            cbel_q4: {
+                id: 'cbel_q4',
+                text: 'Is the main activity hands-on work in a lab or scientific setting, where students observe, test, or manipulate materials or equipment?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_lab_experience',
+                    no: 'cbel_q5'
+                }
+            },
+            cbel_q5: {
+                id: 'cbel_q5',
+                text: 'Do students learn primarily through creating, performing, or presenting artistic, dramatic, or musical work?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_performance_based',
+                    no: 'cbel_q6'
+                }
+            },
+            cbel_q6: {
+                id: 'cbel_q6',
+                text: 'Do students earn credit by developing a startup, business idea, or social venture within a structured support program?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_incubator',
+                    no: 'cbel_q7'
+                }
+            },
+            cbel_q7: {
+                id: 'cbel_q7',
+                text: 'Do students complete a short-term, supervised, hands-on experience in a real-world setting related to their field of study?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_field_experience',
+                    no: 'cbel_q8'
+                }
+            },
+            cbel_q8: {
+                id: 'cbel_q8',
+                text: 'Is the course mainly organized around one or more major projects that require students to research, create, collaborate, or present a final product or project?',
+                type: 'yesno',
+                next: {
+                    yes: 'outcome_project_based',
+                    no: 'outcome_not_experiential'
+                }
+            }
+        };
+
+        const OUTCOMES = {
+            // WIL outcomes (CEWIL-aligned)
+            outcome_coop: {
+                id: 'outcome_coop',
+                code: 'COOP',
+                label: 'WIL Type Identified',
+                title: 'Co-operative Education',
+                description: 'This experience is part of a formal co-operative education program where work terms are recorded on the student’s academic record as designated work terms, are typically full-time, and are paid. This is a core form of Work-Integrated Learning under CEWIL Canada standards.',
+                isWIL: true,
+                category: 'WIL'
+            },
+            outcome_work_experience: {
+                id: 'outcome_work_experience',
+                code: 'WORKE',
+                label: 'WIL Type Identified',
+                title: 'Work Experience',
+                description: 'This involves a short or limited number of full-time work terms, usually in an entry-level role, that are not part of a formal program of approved work terms. This qualifies as Work-Integrated Learning.',
+                isWIL: true,
+                category: 'WIL'
+            },
+            outcome_internship: {
+                id: 'outcome_internship',
+                code: 'INTERN',
+                label: 'WIL Type Identified',
+                title: 'Internship',
+                description: 'This is an intensive, closely supervised placement in a discipline-specific role, which may be paid or unpaid and can occur at different points in the program. This is a recognized form of Work-Integrated Learning.',
+                isWIL: true,
+                category: 'WIL'
+            },
+            outcome_practicum: {
+                id: 'outcome_practicum',
+                code: 'CLINP',
+                label: 'WIL Type Identified',
+                title: 'Mandatory Professional Practicum / Clinical Placement',
+                description: 'This placement is required for professional certification or licensing, with students working under the supervision of a licensed or registered professional in a setting where hours and performance are tied to professional standards.',
+                isWIL: true,
+                category: 'WIL'
+            },
+            outcome_field_placement: {
+                id: 'outcome_field_placement',
+                code: 'FIELDP',
+                label: 'WIL Type Identified',
+                title: 'Field Placement',
+                description: 'This is a short-term or part-time, intensive hands-on placement related to the student’s field of study that is not required for professional licensing. This qualifies as Work-Integrated Learning.',
+                isWIL: true,
+                category: 'WIL'
+            },
+            outcome_applied_research: {
+                id: 'outcome_applied_research',
+                code: 'APPLR',
+                label: 'WIL Type Identified',
+                title: 'Applied Research Project',
+                description: 'The main activity is a research, design, or consulting-style project undertaken for an external organization or community partner. This is a recognized form of Work-Integrated Learning.',
+                isWIL: true,
+                category: 'WIL'
+            },
+            outcome_service_learning: {
+                id: 'outcome_service_learning',
+                code: 'SERVL',
+                label: 'WIL Type Identified',
+                title: 'Service Learning / Community Service-Learning',
+                description: 'The main goal of this experience is to address a community-identified need, with service activities connected to course learning outcomes and structured reflection. This is a form of Work-Integrated Learning.',
+                isWIL: true,
+                category: 'WIL'
+            },
+            outcome_entrepreneurship: {
+                id: 'outcome_entrepreneurship',
+                code: 'ENTRE',
+                label: 'WIL Type Identified',
+                title: 'Entrepreneurship',
+                description: 'Students earn academic credit by starting or developing their own business or social venture using institutional support. This is a recognized form of Work-Integrated Learning.',
+                isWIL: true,
+                category: 'WIL'
+            },
+
+            // CBEL outcomes
+            outcome_interactive_simulation: {
+                id: 'outcome_interactive_simulation',
+                code: 'INISM',
+                label: 'CBEL Type Identified',
+                title: 'Interactive Simulation',
+                description: 'Students take on roles in a simulated or case-based scenario in order to solve a problem or reach a goal. This is a form of Course-Based Experiential Learning.',
+                isWIL: false,
+                category: 'CBEL'
+            },
+            outcome_lab_experience: {
+                id: 'outcome_lab_experience',
+                code: 'LABEX',
+                label: 'CBEL Type Identified',
+                title: 'Lab Experience',
+                description: 'The main activity is hands-on work in a lab or scientific setting, where students observe, test, or manipulate materials or equipment. This is a form of Course-Based Experiential Learning.',
+                isWIL: false,
+                category: 'CBEL'
+            },
+            outcome_performance_based: {
+                id: 'outcome_performance_based',
+                code: 'PERBL',
+                label: 'CBEL Type Identified',
+                title: 'Performance-Based Learning',
+                description: 'Students learn primarily through creating, performing, or presenting artistic, dramatic, or musical work. This is a form of Course-Based Experiential Learning.',
+                isWIL: false,
+                category: 'CBEL'
+            },
+            outcome_incubator: {
+                id: 'outcome_incubator',
+                code: 'INCUB',
+                label: 'CBEL Type Identified',
+                title: 'Incubator',
+                description: 'Students earn course credit by developing a startup, business idea, or social venture within a structured support program. This is a form of Course-Based Experiential Learning.',
+                isWIL: false,
+                category: 'CBEL'
+            },
+            outcome_field_experience: {
+                id: 'outcome_field_experience',
+                code: 'FIELE',
+                label: 'CBEL Type Identified',
+                title: 'Field Experience',
+                description: 'Students complete a short-term, supervised, hands-on experience in a real-world setting related to their field of study. This is a form of Course-Based Experiential Learning.',
+                isWIL: false,
+                category: 'CBEL'
+            },
+            outcome_project_based: {
+                id: 'outcome_project_based',
+                code: 'PBCWK',
+                label: 'CBEL Type Identified',
+                title: 'Project-Based Course Work',
+                description: 'The course is mainly organized around one or more major projects that require students to research, create, collaborate, or present a final product or project. This is a form of Course-Based Experiential Learning.',
+                isWIL: false,
+                category: 'CBEL'
+            },
+            outcome_not_experiential: {
+                id: 'outcome_not_experiential',
+                code: 'N/A',
+                label: 'Classification Result',
+                title: 'Not Experiential Learning',
+                description: 'Based on the answers provided, this activity does not meet the criteria for Work-Integrated Learning (WIL) or Course-Based Experiential Learning (CBEL). It does not need to be reported under the WIL/CBEL reporting framework.',
+                isWIL: false,
+                isNonExperiential: true,
+                category: 'None'
+            }
+        };
+
+        // =================================================================
+        // HELPERS
+        // =================================================================
+
+        function categoryBadgeClass(category) {
+            if (category === 'CBEL') return 'outcome-code category-cbel';
+            if (category === 'None') return 'outcome-code category-none';
+            return 'outcome-code';
+        }
+
+        function formatResultText(classification) {
+            const { outcome, userTitle, timestamp } = classification;
+            const lines = [
+                userTitle ? `Experience: ${userTitle}` : null,
+                `Classification: ${outcome.title} (${outcome.code})`,
+                `Category: ${outcome.category}`,
+                outcome.description,
+                `Saved: ${timestamp}`
+            ].filter(Boolean);
+            return lines.join('\n');
+        }
+
+        // =================================================================
+        // APP COMPONENT
+        // =================================================================
+
+        function App() {
+            // Navigation / flow state
+            const [currentNode, setCurrentNode] = useState('welcome');
+            const [history, setHistory] = useState([]);
+            const [isComplete, setIsComplete] = useState(false);
+
+            // Saved classifications (this session)
+            const [savedClassifications, setSavedClassifications] = useState([]);
+            const [viewMode, setViewMode] = useState('flow');
+            const [selectedIds, setSelectedIds] = useState([]);
+            const [pendingTitle, setPendingTitle] = useState('');
+            const [expandedAnswer, setExpandedAnswer] = useState(null);
+            const [copiedId, setCopiedId] = useState(null);
+
+            // Submission modal state
+            const [modalOpen, setModalOpen] = useState(false);
+            const [modalSubmitted, setModalSubmitted] = useState(false);
+            const [modalSubmitting, setModalSubmitting] = useState(false);
+            const [modalSelected, setModalSelected] = useState([]);
+            const [modalDuplicateWarnings, setModalDuplicateWarnings] = useState([]);
+            const [modalError, setModalError] = useState('');
+            const [formName, setFormName] = useState('');
+            const [formFaculty, setFormFaculty] = useState('');
+            const [formDepartment, setFormDepartment] = useState('');
+            const [formErrors, setFormErrors] = useState({});
+
+            // Close modal on Escape key
+            useEffect(() => {
+                const onKeyDown = (e) => { if (e.key === 'Escape' && modalOpen) handleCloseModal(); };
+                document.addEventListener('keydown', onKeyDown);
+                return () => document.removeEventListener('keydown', onKeyDown);
+            }, [modalOpen]);
+
+            const currentQuestion = QUESTIONS[currentNode];
+            const currentOutcome = OUTCOMES[currentNode];
+
+            const currentQuestionIndex = history.length + 1;
+            const isOnCBELBranch = currentNode.startsWith('cbel_');
+            const isOnWILBranch = currentNode.startsWith('wil_');
+            const branchLabel = isOnWILBranch ? 'WIL Path' : isOnCBELBranch ? 'CBEL Path' : null;
+            const branchMax = isOnCBELBranch ? 8 : 12;
+            const progressPercent = Math.min((currentQuestionIndex / branchMax) * 100, 100);
+
+            // -----------------------------------------------------------
+            // Navigation handlers
+            // -----------------------------------------------------------
+
+            const handleStart = () => {
+                setCurrentNode('q1');
+                setHistory([]);
+                setIsComplete(false);
+            };
+
+            const handleAnswer = (answer) => {
+                const nextNode = currentQuestion.next[answer];
+                const newHistory = [
+                    ...history,
+                    {
+                        node: currentNode,
+                        answer,
+                        questionNumber: history.length + 1,
+                        questionText: currentQuestion.text
+                    }
+                ];
+                setHistory(newHistory);
+
+                if (OUTCOMES[nextNode]) {
+                    setCurrentNode(nextNode);
+                    setIsComplete(true);
+
+                    const newClassification = {
+                        id: Date.now(),
+                        timestamp: new Date().toLocaleString(),
+                        outcome: OUTCOMES[nextNode],
+                        userTitle: '',
+                        answers: newHistory
+                    };
+                    setSavedClassifications(prev => [newClassification, ...prev]);
+                    setSelectedIds(prev => [newClassification.id, ...prev]);
+                    setPendingTitle('');
+                } else {
+                    setCurrentNode(nextNode);
+                }
+            };
+
+            const handleBack = () => {
+                if (history.length > 0) {
+                    const newHistory = [...history];
+                    const previous = newHistory.pop();
+                    setHistory(newHistory);
+                    setCurrentNode(previous.node);
+                    setIsComplete(false);
+                    setPendingTitle('');
+                }
+            };
+
+            const handleRestart = () => {
+                setCurrentNode('q1');
+                setHistory([]);
+                setIsComplete(false);
+                setPendingTitle('');
+                setViewMode('flow');
+            };
+
+            // -----------------------------------------------------------
+            // Title / selection handlers
+            // -----------------------------------------------------------
+
+            const handleUpdateTitle = (id, title) => {
+                setSavedClassifications(prev =>
+                    prev.map(c => (c.id === id ? { ...c, userTitle: title } : c))
+                );
+                if (savedClassifications[0] && savedClassifications[0].id === id) {
+                    setPendingTitle(title);
+                }
+            };
+
+            const handleToggleSelect = (id) => {
+                setSelectedIds(prev =>
+                    prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                );
+            };
+
+            const toggleAnswerDetail = (classificationId, answerIndex) => {
+                const key = `${classificationId}-${answerIndex}`;
+                setExpandedAnswer(prev => (prev === key ? null : key));
+            };
+
+            const handleSelectAll = () => {
+                if (selectedIds.length === savedClassifications.length) {
+                    setSelectedIds([]);
+                } else {
+                    setSelectedIds(savedClassifications.map(c => c.id));
+                }
+            };
+
+            // -----------------------------------------------------------
+            // Export handlers
+            // -----------------------------------------------------------
+
+            const handleExportCSV = () => {
+                const toExport = savedClassifications.filter(c => selectedIds.includes(c.id));
+                if (toExport.length === 0) return;
+
+                const header = ['Experience Title', 'CEWIL Code', 'Classification', 'Category', 'Date Saved'];
+                const escapeCSV = (val) => {
+                    const str = String(val == null ? '' : val);
+                    if (/[",\n]/.test(str)) {
+                        return `"${str.replace(/"/g, '""')}"`;
+                    }
+                    return str;
+                };
+
+                const rows = toExport.map(c => [
+                    c.userTitle || '(untitled)',
+                    c.outcome.code,
+                    c.outcome.title,
+                    c.outcome.category,
+                    c.timestamp
+                ]);
+
+                const csvContent = [header, ...rows]
+                    .map(row => row.map(escapeCSV).join(','))
+                    .join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `wil-cbel-classifications-${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            };
+
+            const handleCopyCurrentResult = () => {
+                if (savedClassifications[0]) {
+                    navigator.clipboard.writeText(formatResultText(savedClassifications[0])).then(() => {
+                        setCopiedId('current');
+                        setTimeout(() => setCopiedId(null), 2000);
+                    });
+                }
+            };
+
+            const handleCopyResult = (classification) => {
+                navigator.clipboard.writeText(formatResultText(classification)).then(() => {
+                    setCopiedId(classification.id);
+                    setTimeout(() => setCopiedId(null), 2000);
+                });
+            };
+
+            // -----------------------------------------------------------
+            // Submission modal handlers
+            // -----------------------------------------------------------
+
+            const handleOpenModal = () => {
+                const titledClassifications = savedClassifications.filter(c => c.userTitle.trim() !== '');
+                setModalSelected(titledClassifications.map(c => c.id));
+
+                const previouslySubmitted = JSON.parse(
+                    sessionStorage.getItem('wil-cbel-submitted-titles') || '[]'
+                );
+                const duplicateWarnings = titledClassifications
+                    .filter(c => previouslySubmitted.includes(c.userTitle.trim().toLowerCase()))
+                    .map(c => c.userTitle);
+                setModalDuplicateWarnings(duplicateWarnings);
+
+                setModalError('');
+                setFormErrors({});
+                setModalSubmitted(false);
+                setModalOpen(true);
+            };
+
+            const handleCloseModal = () => {
+                setModalOpen(false);
+                setModalSubmitted(false);
+                setModalSubmitting(false);
+                setModalSelected([]);
+                setModalDuplicateWarnings([]);
+                setModalError('');
+                setFormErrors({});
+            };
+
+            const handleToggleModalSelect = (id) => {
+                setModalSelected(prev =>
+                    prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                );
+            };
+
+            const handleSubmit = async () => {
+                const errors = {};
+                if (!formName.trim()) errors['submitter-name'] = 'Please enter your name.';
+                if (!formFaculty.trim()) errors['faculty'] = 'Please enter your faculty.';
+                if (!formDepartment.trim()) errors['department'] = 'Please enter your department.';
+                if (modalSelected.length === 0) errors['classifications'] = 'Select at least one titled classification to submit.';
+
+                if (Object.keys(errors).length > 0) {
+                    setFormErrors(errors);
+                    return;
+                }
+
+                setFormErrors({});
+                setModalError('');
+                setModalSubmitting(true);
+
+                const toSubmit = savedClassifications.filter(c => modalSelected.includes(c.id));
+                const classificationsText = toSubmit
+                    .map((c, i) => `${i + 1}. [${c.outcome.code}] ${c.outcome.title} — "${c.userTitle}" (${c.outcome.category}, ${c.timestamp})`)
+                    .join('\n');
+
+                const params = new URLSearchParams();
+                params.append('form-name', 'wil-cbel-submission');
+                params.append('bot-field', '');
+                params.append('submitter-name', formName.trim());
+                params.append('faculty', formFaculty.trim());
+                params.append('department', formDepartment.trim());
+                params.append('submission-date', new Date().toLocaleString());
+                params.append('total_classifications', String(toSubmit.length));
+                params.append('classifications', classificationsText);
+
+                try {
+                    const res = await fetch('/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: params.toString()
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Submission failed (status ${res.status})`);
+                    }
+
+                    const submittedTitles = JSON.parse(
+                        sessionStorage.getItem('wil-cbel-submitted-titles') || '[]'
+                    );
+                    const newTitles = toSubmit.map(c => c.userTitle.trim().toLowerCase());
+                    sessionStorage.setItem(
+                        'wil-cbel-submitted-titles',
+                        JSON.stringify([...new Set([...submittedTitles, ...newTitles])])
+                    );
+
+                    setModalSubmitted(true);
+                } catch (err) {
+                    setModalError('Something went wrong while submitting. Please check your connection and try again.');
+                } finally {
+                    setModalSubmitting(false);
+                }
+            };
+
+            // -----------------------------------------------------------
+            // Derived values
+            // -----------------------------------------------------------
+
+            const allSelected = savedClassifications.length > 0 && selectedIds.length === savedClassifications.length;
+            const hasTitledClassifications = savedClassifications.some(c => c.userTitle.trim() !== '');
+            const currentResult = savedClassifications[0];
+
+            // -----------------------------------------------------------
+            // Render helpers
+            // -----------------------------------------------------------
+
+            const renderWelcome = () => (
+                <div className="content">
+                    <div className="welcome-container">
+                        <div className="welcome-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M12 2 2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                        </div>
+                        <h2 className="welcome-title">WIL &amp; CBEL Classification Tool</h2>
+                        <p className="welcome-description">
+                            This tool helps faculty and staff classify learning experiences for
+                            University of Lethbridge reporting, aligned with CEWIL Canada's national
+                            standards for Work-Integrated Learning (WIL) and Course-Based
+                            Experiential Learning (CBEL).
+                        </p>
+                        <p className="welcome-description">
+                            Answer a short series of yes/no questions about a course or activity.
+                            At the end, you'll receive a classification you can name, save, and
+                            submit directly to the WIL/CBEL reporting team &mdash; no downloads or
+                            email attachments required. You can classify multiple experiences in
+                            one session before submitting.
+                        </p>
+                        <div className="welcome-categories">
+                            <div className="welcome-category-card">
+                                <h3>WIL</h3>
+                                <p>Work-Integrated Learning &mdash; experiences that place students with an external workplace, organization, or community partner (Co-op, Internship, Practicum, Service Learning, etc.)</p>
+                            </div>
+                            <div className="welcome-category-card">
+                                <h3>CBEL</h3>
+                                <p>Course-Based Experiential Learning &mdash; structured applied learning within a course, without an external partner (Labs, Simulations, Project-Based Coursework, etc.)</p>
+                            </div>
+                        </div>
+                        <div className="disclaimer" role="note" style={{ maxWidth: '640px', margin: '0 auto 2rem', textAlign: 'left' }}>
+                            Note: your classifications are only saved for the duration of this browser session — refreshing or closing the tab will clear your work.
+                        </div>
+                        <button className="btn btn-primary btn-inline" onClick={handleStart}>
+                            Start Classification
+                        </button>
+                    </div>
+                </div>
+            );
+
+            const renderQuestion = () => (
+                <>
+                    <div className="progress-container">
+                        <div className="progress-text">
+                            Question {currentQuestionIndex}{branchLabel ? ` — ${branchLabel}` : ''}
+                        </div>
+                        <div className="progress-bar-bg">
+                            <div
+                                className="progress-bar-fill"
+                                style={{ width: `${progressPercent}%` }}
+                                role="progressbar"
+                                aria-valuenow={currentQuestionIndex}
+                                aria-valuemin="1"
+                                aria-valuemax={branchMax}
+                                aria-label={`Question ${currentQuestionIndex} of up to ${branchMax}${branchLabel ? ` on the ${branchLabel}` : ''}`}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="content">
+                        <div className="question-number">Question {currentQuestionIndex}</div>
+                        <h2 className="question-text">{currentQuestion.text}</h2>
+
+                        <div className="button-group" role="group" aria-label="Answer options">
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => handleAnswer('yes')}
+                            >
+                                Yes
+                            </button>
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => handleAnswer('no')}
+                            >
+                                No
+                            </button>
+                        </div>
+
+                        {history.length > 0 && (
+                            <div className="nav-buttons">
+                                <button
+                                    className="btn btn-back"
+                                    onClick={handleBack}
+                                    aria-label="Go back to previous question"
+                                >
+                                    ← Back
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </>
+            );
+
+            const renderResult = () => (
+                <div className="content">
+                    <div className="result-container" role="region" aria-labelledby="result-heading">
+                        <div className="result-icon" aria-hidden="true">
+                            {currentOutcome.isWIL ? (
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            ) : currentOutcome.isNonExperiential ? (
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                            ) : (
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            )}
+                        </div>
+
+                        <div className="result-label" aria-hidden="true">{currentOutcome.label}</div>
+                        <div className="result-code" aria-hidden="true">{currentOutcome.code}</div>
+                        <h2 className="result-title" id="result-heading">{currentOutcome.title}</h2>
+                        <p className="result-description">{currentOutcome.description}</p>
+
+                        {currentResult && (
+                            <div className="title-input-group">
+                                <label className="title-input-label" htmlFor="experience-title">
+                                    Name this experience
+                                </label>
+                                <input
+                                    id="experience-title"
+                                    type="text"
+                                    className="title-input"
+                                    placeholder="e.g. MGMT 3850 B – Industry Consulting Project"
+                                    value={pendingTitle}
+                                    aria-describedby="experience-title-hint"
+                                    onChange={(e) => {
+                                        setPendingTitle(e.target.value);
+                                        handleUpdateTitle(currentResult.id, e.target.value);
+                                    }}
+                                />
+                                <p className="title-hint" id="experience-title-hint">
+                                    e.g. MGMT 3850 B – Industry Consulting Project &mdash; or use your own description
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="result-actions">
+                            <button className="btn btn-secondary" onClick={handleCopyCurrentResult} aria-live="polite">
+                                {copiedId === 'current' ? '✓ Copied' : 'Copy Result'}
+                            </button>
+                            <button className="btn btn-primary" onClick={handleRestart}>
+                                Start New Classification
+                            </button>
+                            <button
+                                className="btn btn-ready-submit"
+                                onClick={() => setViewMode('summary')}
+                                disabled={pendingTitle.trim() === ''}
+                            >
+                                Go to Summary
+                            </button>
+                        </div>
+
+                        <button className="btn-text" onClick={() => setViewMode('summary')}>
+                            View Summary ({savedClassifications.length})
+                        </button>
+
+                        <div className="disclaimer" role="note">
+                            <strong>Note:</strong> This tool is a decision aid aligned with CEWIL's WIL and CBEL definitions and local adaptations. Final classification decisions should be confirmed by the University of Lethbridge's WIL/CBEL governance or quality assurance processes.
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderSummary = () => (
+                <div className="content">
+                    <div className="summary-header">
+                        <div>
+                            <h2 className="summary-title">Saved Classifications</h2>
+                            <p className="summary-subtitle">
+                                {savedClassifications.length === 0
+                                    ? 'No classifications saved yet this session.'
+                                    : `${savedClassifications.length} classification${savedClassifications.length === 1 ? '' : 's'} saved this session.`}
+                            </p>
+                        </div>
+                        <button className="btn btn-secondary btn-small" onClick={() => setViewMode('flow')}>
+                            Back to Classifier
+                        </button>
+                    </div>
+
+                    {savedClassifications.length === 0 ? (
+                        <div className="summary-empty">
+                            <p>You haven't completed any classifications yet.</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="classification-list">
+                                {savedClassifications.map((c) => (
+                                    <div
+                                        className={`classification-card ${selectedIds.includes(c.id) ? 'selected' : ''} ${c.userTitle.trim() === '' ? 'no-title' : ''}`}
+                                        key={c.id}
+                                    >
+                                        <div className="card-checkbox-wrap">
+                                            <input
+                                                type="checkbox"
+                                                className="card-checkbox"
+                                                checked={selectedIds.includes(c.id)}
+                                                onChange={() => handleToggleSelect(c.id)}
+                                                aria-label={`Select ${c.userTitle || 'untitled classification'} for export`}
+                                            />
+                                            <div className="classification-info">
+                                                <div className="classification-header">
+                                                    <div>
+                                                        <span className={categoryBadgeClass(c.outcome.category)}>{c.outcome.code}</span>
+                                                        <div className="classification-outcome">{c.outcome.title}</div>
+                                                        <div className="classification-type">{c.outcome.category === 'None' ? 'Not Experiential Learning' : `${c.outcome.category} Classification`}</div>
+                                                    </div>
+                                                    <div className="classification-actions">
+                                                        <button className="btn-text" onClick={() => handleCopyResult(c)} aria-live="polite" aria-label={copiedId === c.id ? 'Result copied to clipboard' : 'Copy result to clipboard'}>
+                                                            {copiedId === c.id ? '✓ Copied' : 'Copy Result'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="classification-title-row">
+                                                    <input
+                                                        type="text"
+                                                        className="classification-title-input"
+                                                        placeholder="Name this experience, e.g. MGMT 3850 B – Industry Consulting Project"
+                                                        value={c.userTitle}
+                                                        onChange={(e) => handleUpdateTitle(c.id, e.target.value)}
+                                                        aria-label="Experience name"
+                                                    />
+                                                </div>
+
+                                                {c.answers.length > 0 && (
+                                                    <div className="answers-summary" role="list" aria-label="Questions answered">
+                                                        {c.answers.map((a, idx) => {
+                                                            const key = `${c.id}-${idx}`;
+                                                            const detailId = `detail-${c.id}-${idx}`;
+                                                            const expanded = expandedAnswer === key;
+                                                            return (
+                                                                <React.Fragment key={key}>
+                                                                    <button
+                                                                        type="button"
+                                                                        role="listitem"
+                                                                        className={`answer-chip ${expanded ? 'expanded' : ''}`}
+                                                                        onClick={() => toggleAnswerDetail(c.id, idx)}
+                                                                        aria-expanded={expanded}
+                                                                        aria-controls={detailId}
+                                                                        aria-label={`Question ${a.questionNumber}: answered ${a.answer}. Click to ${expanded ? 'hide' : 'show'} question text.`}
+                                                                    >
+                                                                        Q{a.questionNumber}: <span className="answer-value" aria-hidden="true">{a.answer}</span>
+                                                                    </button>
+                                                                    {expanded && (
+                                                                        <div className="answer-detail" id={detailId} role="region" aria-label={`Question ${a.questionNumber} text`}>
+                                                                            <p className="answer-detail-question">{a.questionText}</p>
+                                                                        </div>
+                                                                    )}
+                                                                </React.Fragment>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+
+                                                <div className="classification-timestamp">Saved {c.timestamp}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="export-bar">
+                                <label className="select-all-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={allSelected}
+                                        onChange={handleSelectAll}
+                                    />
+                                    Select all for export
+                                </label>
+                                <div className="export-bar-actions">
+                                    <button
+                                        className="btn btn-secondary btn-small"
+                                        onClick={handleExportCSV}
+                                        disabled={selectedIds.length === 0}
+                                    >
+                                        Export Selected as CSV
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="summary-footer-actions">
+                                <button className="btn btn-secondary" onClick={handleRestart}>
+                                    Start New Classification
+                                </button>
+                                <button
+                                    className="btn btn-ready-submit"
+                                    onClick={handleOpenModal}
+                                    disabled={!hasTitledClassifications}
+                                >
+                                    Ready to Submit
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+
+            const renderModal = () => {
+                if (!modalOpen) return null;
+
+                const titledClassifications = savedClassifications.filter(c => c.userTitle.trim() !== '');
+                const untitledCount = savedClassifications.length - titledClassifications.length;
+
+                return (
+                    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                        <div className="modal">
+                            <div className="modal-header">
+                                <h2 className="modal-title" id="modal-title">
+                                    {modalSubmitted ? 'Submission Received' : 'Submit Classifications'}
+                                </h2>
+                                {!modalSubmitted && (
+                                    <>
+                                        <p className="modal-subtitle">
+                                            Send your saved classifications to the WIL/CBEL reporting team.
+                                        </p>
+                                        <p className="modal-subtitle">
+                                            Title your experiences and hit submit to complete your report.
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="modal-body">
+                                {modalSubmitted ? (
+                                    <div className="modal-success">
+                                        <div className="modal-success-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                        </div>
+                                        <h3 className="modal-success-title">Thank you!</h3>
+                                        <p className="modal-success-text">
+                                            Your classification{modalSelected.length === 1 ? '' : 's'} have been submitted to the WIL/CBEL reporting team. You can continue classifying experiences or close this window.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {modalError && (
+                                            <div className="modal-error-banner">{modalError}</div>
+                                        )}
+
+                                        {modalDuplicateWarnings.length > 0 && (
+                                            <div className="modal-duplicate-warning">
+                                                {'⚠ '}The following {modalDuplicateWarnings.length > 1 ? 'experiences have' : 'experience has'} already been submitted this session:
+                                                <ul>
+                                                    {modalDuplicateWarnings.map(title => <li key={title}><strong>{title}</strong></li>)}
+                                                </ul>
+                                                Proceed only if this is a new or amended report.
+                                            </div>
+                                        )}
+
+                                        <div className="modal-field">
+                                            <label htmlFor="submitter-name">Your name</label>
+                                            <input
+                                                id="submitter-name"
+                                                type="text"
+                                                className={formErrors['submitter-name'] ? 'field-error' : ''}
+                                                value={formName}
+                                                onChange={(e) => setFormName(e.target.value)}
+                                            />
+                                            {formErrors['submitter-name'] && (
+                                                <p className="field-error-text">{formErrors['submitter-name']}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="modal-field">
+                                            <label htmlFor="faculty">Faculty</label>
+                                            <input
+                                                id="faculty"
+                                                type="text"
+                                                className={formErrors['faculty'] ? 'field-error' : ''}
+                                                value={formFaculty}
+                                                onChange={(e) => setFormFaculty(e.target.value)}
+                                            />
+                                            {formErrors['faculty'] && (
+                                                <p className="field-error-text">{formErrors['faculty']}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="modal-field">
+                                            <label htmlFor="department">Department</label>
+                                            <input
+                                                id="department"
+                                                type="text"
+                                                className={formErrors['department'] ? 'field-error' : ''}
+                                                value={formDepartment}
+                                                onChange={(e) => setFormDepartment(e.target.value)}
+                                            />
+                                            {formErrors['department'] && (
+                                                <p className="field-error-text">{formErrors['department']}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="modal-section-label">
+                                            Classifications to include
+                                        </div>
+                                        {formErrors['classifications'] && (
+                                            <p className="field-error-text" style={{ marginTop: '-0.5rem', marginBottom: '0.75rem' }}>
+                                                {formErrors['classifications']}
+                                            </p>
+                                        )}
+                                        <div className="modal-checkbox-list">
+                                            {titledClassifications.map(c => (
+                                                <label className="modal-checkbox-item" key={c.id}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={modalSelected.includes(c.id)}
+                                                        onChange={() => handleToggleModalSelect(c.id)}
+                                                    />
+                                                    <span>
+                                                        <strong>{c.outcome.code}</strong> &mdash; {c.outcome.title} &mdash; "{c.userTitle}"
+                                                    </span>
+                                                </label>
+                                            ))}
+                                            {untitledCount > 0 && (
+                                                <div className="modal-checkbox-item disabled">
+                                                    <input type="checkbox" disabled />
+                                                    <span>
+                                                        {untitledCount} classification{untitledCount === 1 ? '' : 's'} not included
+                                                        <div className="modal-checkbox-item-note">
+                                                            Add an experience name in the summary view to include {untitledCount === 1 ? 'it' : 'them'} in a submission.
+                                                        </div>
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="modal-footer">
+                                {modalSubmitted ? (
+                                    <button className="btn btn-primary" onClick={handleCloseModal}>
+                                        Close
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button className="btn btn-secondary" onClick={handleCloseModal} disabled={modalSubmitting}>
+                                            Cancel
+                                        </button>
+                                        <button className="btn btn-ready-submit" onClick={handleSubmit} disabled={modalSubmitting}>
+                                            {modalSubmitting ? 'Submitting…' : 'Submit'}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="app-container">
+                    <header className="header">
+                        <h1 className="header-title">WIL &amp; CBEL Classification Tool</h1>
+                        <p className="header-subtitle">University of Lethbridge Experiential Learning Framework</p>
+                    </header>
+
+                    {viewMode === 'summary' && <div className="summary-divider"></div>}
+
+                    <main className="card" id="main-content">
+                        {viewMode === 'summary'
+                            ? renderSummary()
+                            : currentNode === 'welcome'
+                                ? renderWelcome()
+                                : isComplete && currentOutcome
+                                    ? renderResult()
+                                    : currentQuestion
+                                        ? renderQuestion()
+                                        : null}
+                    </main>
+
+                    {viewMode === 'flow' && currentNode !== 'welcome' && savedClassifications.length > 0 && (
+                        <button
+                            className="floating-summary-btn"
+                            onClick={() => setViewMode('summary')}
+                            aria-label={`View Summary — ${savedClassifications.length} saved classification${savedClassifications.length === 1 ? '' : 's'}`}
+                        >
+                            View Summary
+                            <span className="floating-summary-badge" aria-hidden="true">{savedClassifications.length}</span>
+                        </button>
+                    )}
+
+                    {renderModal()}
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
